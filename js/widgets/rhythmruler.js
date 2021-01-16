@@ -89,7 +89,6 @@ class RhythmRuler{
             this._offsets.push(0);
         }
 
-        let w = window.innerWidth;
         this._cellScale = 1.0;
 
         let widgetWindow = window.widgetWindows.windowFor(this, "rhythm maker");
@@ -98,7 +97,6 @@ class RhythmRuler{
         widgetWindow.show();
 
         // For the button callbacks
-        let that = this;
 
         widgetWindow.onclose = function() {
             // If the piemenu was open, close it.
@@ -108,40 +106,40 @@ class RhythmRuler{
             // Save the new dissect history.
             let dissectHistory = [];
             let drums = [];
-            for (let i = 0; i < that.Rulers.length; i++) {
-                if (that.Drums[i] === null) {
+            for (let i = 0; i < this.Rulers.length; i++) {
+                if (this.Drums[i] === null) {
                     continue;
                 }
 
                 let history = [];
-                for (let j = 0; j < that.Rulers[i][1].length; j++) {
-                    history.push(that.Rulers[i][1][j]);
+                for (let j = 0; j < this.Rulers[i][1].length; j++) {
+                    history.push(this.Rulers[i][1][j]);
                 }
 
-                that._dissectNumber.classList.add("hasKeyboard");
-                dissectHistory.push([history, that.Drums[i]]);
-                drums.push(that.Drums[i]);
+                this._dissectNumber.classList.add("hasKeyboard");
+                dissectHistory.push([history, this.Drums[i]]);
+                drums.push(this.Drums[i]);
             }
 
             // Look for any old entries that we may have missed.
-            for (let i = 0; i < that._dissectHistory.length; i++) {
-                let drum = that._dissectHistory[i][1];
+            for (let i = 0; i < this._dissectHistory.length; i++) {
+                let drum = this._dissectHistory[i][1];
                 if (drums.indexOf(drum) === -1) {
                     let history = JSON.parse(
-                        JSON.stringify(that._dissectHistory[i][0])
+                        JSON.stringify(this._dissectHistory[i][0])
                     );
                     dissectHistory.push([history, drum]);
                 }
             }
 
-            that._dissectHistory = JSON.parse(JSON.stringify(dissectHistory));
+            this._dissectHistory = JSON.parse(JSON.stringify(dissectHistory));
 
-            that._playing = false;
-            that._playingOne = false;
-            that._playingAll = false;
+            this._playing = false;
+            this._playingOne = false;
+            this._playingAll = false;
             logo.hideMsgs();
 
-            that.widgetWindow.destroy();
+            this.widgetWindow.destroy();
         };
 
         this._playAllCell = widgetWindow.addButton(
@@ -149,10 +147,10 @@ class RhythmRuler{
             RhythmRuler.ICONSIZE,
             _("Play all")
         );
-        this._playAllCell.onclick = function() {
-            if (that._playing) {
+        this._playAllCell.onclick = () => {
+            if (this._playing) {
                 that.__pause();
-            } else if (!that._playingAll) {
+            } else if (!this._playingAll) {
                 that.__resume();
             }
         };
@@ -162,19 +160,19 @@ class RhythmRuler{
             "export-chunk.svg",
             RhythmRuler.ICONSIZE,
             _("Save rhythms")
-        ).onclick = async function() {
+        ).onclick = async () => {
             // that._save(0);
             // Debounce button
-            if (!that._get_save_lock()) {
-                that._save_lock = true;
+            if (!this._get_save_lock()) {
+                this._save_lock = true;
 
                 // Save a merged version of the rulers.
-                that._saveTupletsMerged(that._mergeRulers());
+                this._saveTupletsMerged(this._mergeRulers());
 
                 // Rather than each ruler individually.
                 // that._saveTuplets(0);
                 await delayExecution(1000);
-                that._save_lock = false;
+                this._save_lock = false;
             }
         };
 
@@ -182,42 +180,42 @@ class RhythmRuler{
             "export-drums.svg",
             RhythmRuler.ICONSIZE,
             _("Save drum machine")
-        ).onclick = async function() {
+        ).onclick = async () => {
             // Debounce button
-            if (!that._get_save_lock()) {
-                that._save_lock = true;
-                that._saveMachine(0);
+            if (!this._get_save_lock()) {
+                this._save_lock = true;
+                this._saveMachine(0);
                 await delayExecution(1000);
-                that._save_lock = false;
+                this._save_lock = false;
             }
         };
 
         // An input for setting the dissect number
         this._dissectNumber = widgetWindow.addInputButton("2");
 
-        this._dissectNumber.onfocus = (event) => {
+        this._dissectNumber.onfocus = () => {
             // that._piemenuNumber(['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16'], numberInput.value);
         };
 
         this._dissectNumber.onkeydown = (event) => {
             if (event.keyCode === DEL) {
-                that._dissectNumber.value = that._dissectNumber.value.substring(
+                this._dissectNumber.value = this._dissectNumber.value.substring(
                     0,
-                    that._dissectNumber.value.length - 1
+                    this._dissectNumber.value.length - 1
                 );
             }
         };
 
         this._dissectNumber.oninput = (event) => {
             // Put a limit on the size (2 <--> 128).
-            that._dissectNumber.onmouseout = function() {
-                that._dissectNumber.value = Math.max(
-                    that._dissectNumber.value,
+            this._dissectNumber.onmouseout = function() {
+                this._dissectNumber.value = Math.max(
+                    this._dissectNumber.value,
                     2
                 );
             };
 
-            that._dissectNumber.value = Math.max(
+            this._dissectNumber.value = Math.max(
                 Math.min(that._dissectNumber.value, 128),
                 2
             );
@@ -227,8 +225,8 @@ class RhythmRuler{
             "restore-button.svg",
             RhythmRuler.ICONSIZE,
             _("Undo")
-        ).onclick = function() {
-            that._undo();
+        ).onclick = () => {
+            this._undo();
         };
 
         //.TRANS: user can tap out a rhythm by clicking on a ruler.
@@ -237,8 +235,8 @@ class RhythmRuler{
             RhythmRuler.ICONSIZE,
             _("Tap a rhythm")
         );
-        this._tapButton.onclick = function() {
-            that._tap();
+        this._tapButton.onclick = () => {
+            this._tap();
         };
 
         //.TRANS: clear all subdivisions from the ruler.
@@ -246,8 +244,8 @@ class RhythmRuler{
             "erase-button.svg",
             RhythmRuler.ICONSIZE,
             _("Clear")
-        ).onclick = function() {
-            that._clear();
+        ).onclick = () => {
+            this._clear();
         };
 
         // We use an outer div to scroll vertically and an inner div to
@@ -285,10 +283,10 @@ class RhythmRuler{
                     '" />';
                 drumcell.className = "headcol"; // Position fixed when scrolling horizontally
 
-                drumcell.onclick = (function(id) {
-                    return function() {
-                        if (that._playing) {
-                            if (that._rulerPlaying === id) {
+                drumcell.onclick = ((id) => {
+                    return () => {
+                        if (this._playing) {
+                            if (this._rulerPlaying === id) {
                                 this.innerHTML =
                                     '<img src="header-icons/play-button.svg" title="' +
                                     _("Play") +
@@ -299,15 +297,15 @@ class RhythmRuler{
                                     '" width="' +
                                     RhythmRuler.ICONSIZE +
                                     '" vertical-align="middle">';
-                                that._playing = false;
-                                that._playingOne = false;
-                                that._playingAll = false;
-                                that._rulerPlaying = -1;
-                                that._startingTime = null;
-                                that._elapsedTimes[id] = 0;
-                                that._offsets[id] = 0;
+                                this._playing = false;
+                                this._playingOne = false;
+                                this._playingAll = false;
+                                this._rulerPlaying = -1;
+                                this._startingTime = null;
+                                this._elapsedTimes[id] = 0;
+                                this._offsets[id] = 0;
                                 setTimeout(
-                                    that._calculateZebraStripes(id),
+                                    this._calculateZebraStripes(id),
                                     1000
                                 );
                             }
@@ -601,7 +599,6 @@ class RhythmRuler{
                     drum = logo.blocks.blockList[drumBlockNo].value;
                 }
 
-                let that = this;
                 // FIXME: Should be based on meter
                 for (let i = 0; i < 4; i++) {
                     setTimeout(function() {
@@ -612,7 +609,7 @@ class RhythmRuler{
                 }
 
                 setTimeout(function() {
-                    that.__startTapping(noteValues, interval);
+                    this.__startTapping(noteValues, interval);
                 }, interval);
             }
         } else {
@@ -642,13 +639,13 @@ class RhythmRuler{
         this._tapEndTime = this._tapTimes[0] + interval;
 
         // Set a timeout to end tapping
-        let that = this;
+    
         setTimeout(function() {
             that.__endTapping();
         }, interval);
 
         // Display a progress bar.
-        function __move(tick, stepSize) {
+        const __move = (tick, stepSize) => {
             let width = 1;
             let id = setInterval(frame, tick);
 
@@ -657,7 +654,7 @@ class RhythmRuler{
                     clearInterval(id);
                 } else {
                     width += stepSize;
-                    that._progressBar.style.width = width + "%";
+                    this._progressBar.style.width = width + "%";
                 }
             }
         }
@@ -780,16 +777,15 @@ class RhythmRuler{
     }
 
     __addCellEventHandlers(cell, cellWidth, noteValue) {
-        let that = this;
 
-        __mouseOverHandler = function(event) {
+        __mouseOverHandler = (event) => {
             let cell = event.target;
             if (cell === null || cell.parentNode === null) {
                 return;
             }
 
-            that._rulerSelected = cell.parentNode.getAttribute("data-row");
-            let noteValues = that.Rulers[that._rulerSelected][0];
+            this._rulerSelected = cell.parentNode.getAttribute("data-row");
+            let noteValues = this.Rulers[that._rulerSelected][0];
             let noteValue = noteValues[cell.cellIndex];
             let obj;
             if (noteValue < 0) {
@@ -810,29 +806,29 @@ class RhythmRuler{
             }
         };
 
-        __mouseOutHandler = function(event) {
+        __mouseOutHandler = (event) => {
             let cell = event.target;
             cell.innerHTML = "";
         };
 
-        __mouseDownHandler = function(event) {
+        __mouseDownHandler = (event) => {
             let cell = event.target;
-            that._mouseDownCell = cell;
+            this._mouseDownCell = cell;
 
             let d = new Date();
-            that._longPressStartTime = d.getTime();
-            that._inLongPress = false;
+            this._longPressStartTime = d.getTime();
+            this._inLongPress = false;
 
-            that._longPressBeep = setTimeout(function() {
+            this._longPressBeep = setTimeout(function() {
                 // Removing audio feedback on long press since it
                 // occasionally confuses tone.js during rapid clicking
                 // in the widget.
 
                 // that._logo.synth.trigger(0, 'C4', 1 / 32, 'chime', null, null);
 
-                let cell = that._mouseDownCell;
+                let cell = this._mouseDownCell;
                 if (cell !== null && cell.parentNode !== null) {
-                    that._rulerSelected = cell.parentNode.getAttribute(
+                    this._rulerSelected = cell.parentNode.getAttribute(
                         "data-row"
                     );
                     let noteValues = that.Rulers[that._rulerSelected][0];
@@ -843,32 +839,32 @@ class RhythmRuler{
             }, 1500);
         };
 
-        __mouseUpHandler = function(event) {
-            clearTimeout(that._longPressBeep);
+        __mouseUpHandler = (event) => {
+            clearTimeout(this._longPressBeep);
             let cell = event.target;
-            that._mouseUpCell = cell;
-            if (that._mouseDownCell !== that._mouseUpCell) {
-                that._tieRuler(event, cell.parentNode.getAttribute("data-row"));
-            } else if (that._longPressStartTime !== null && !that._tapMode) {
+            this._mouseUpCell = cell;
+            if (this._mouseDownCell !== this._mouseUpCell) {
+                this._tieRuler(event, cell.parentNode.getAttribute("data-row"));
+            } else if (this._longPressStartTime !== null && !this._tapMode) {
                 let d = new Date();
                 let elapseTime = d.getTime() - that._longPressStartTime;
                 if (elapseTime > 1500) {
-                    that._inLongPress = true;
-                    that.__toggleRestState(this, true);
+                    this._inLongPress = true;
+                    this.__toggleRestState(this, true);
                 }
             }
 
-            that._mouseDownCell = null;
-            that._mouseUpCell = null;
-            that._longPressStartTime = null;
+            this._mouseDownCell = null;
+            this._mouseUpCell = null;
+            this._longPressStartTime = null;
         };
 
-        __clickHandler = function(event) {
+        __clickHandler = (event) => {
             if (event == undefined) return;
-            if (!that.__getLongPressStatus()) {
+            if (!this.__getLongPressStatus()) {
                 let cell = event.target;
                 if (cell !== null && cell.parentNode !== null) {
-                    that._dissectRuler(
+                    this._dissectRuler(
                         event,
                         cell.parentNode.getAttribute("data-row")
                     );
@@ -886,7 +882,7 @@ class RhythmRuler{
             cell.innerHTML = calcNoteValueToDisplay(
                 obj[1],
                 obj[0],
-                that._cellScale
+                this._cellScale
             );
         } else {
             cell.innerHTML = "";
@@ -913,14 +909,13 @@ class RhythmRuler{
     }
 
     __toggleRestState(cell, addToUndoList) {
-        let that = this;
 
         if (cell !== null && cell.parentNode !== null) {
             this._rulerSelected = cell.parentNode.getAttribute("data-row");
             let noteValues = this.Rulers[this._rulerSelected][0];
             let noteValue = noteValues[cell.cellIndex];
 
-            __mouseOverHandler = function(event) {
+            __mouseOverHandler = (event) => {
                 let cell = event.target;
                 if (cell === null) {
                     return;
@@ -928,8 +923,8 @@ class RhythmRuler{
 
                 let obj;
 
-                that._rulerSelected = cell.parentNode.getAttribute("data-row");
-                let noteValues = that.Rulers[that._rulerSelected][0];
+                this._rulerSelected = cell.parentNode.getAttribute("data-row");
+                let noteValues = that.Rulers[this._rulerSelected][0];
                 let noteValue = noteValues[cell.cellIndex];
                 if (noteValue < 0) {
                     obj = rationalToFraction(
